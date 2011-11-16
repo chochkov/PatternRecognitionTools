@@ -3,14 +3,16 @@ class Vectors
   include Enumerable
   attr_accessor :data
 
-  def initialize(array = [])
+  def initialize(array = [], label = nil)
     @data = if array.empty? || array.all? { |e| e.kind_of? Vector }
         array
+      elsif array.all? { |e| e.size == 2 }
+        array.map { |pair| Vector.new *pair, label }
       elsif array.all? { |e| e.size == 3 }
         array.map { |triple| Vector.new *triple }
       else
         raise ArgumentError.new "#{array} given, expected vectors or triplets"
-    end
+      end
   end
 
   def first
@@ -19,6 +21,10 @@ class Vectors
 
   def last
     @data.last
+  end
+
+  def [](count)
+    @data[count]
   end
 
   def each

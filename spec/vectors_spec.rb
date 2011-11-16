@@ -7,6 +7,12 @@ describe Vectors do
     a.last.should == Vector.new(3, 4, 0)
   end
 
+  it "should be initiialized from array of pairs and a label" do
+    a = Vectors.new([ [1, 2], [2, 3] ], 8)
+    a.first.should == Vector.new(1, 2, 8)
+    a.last.should == Vector.new(2, 3, 8)
+  end
+
   it "should be initialized from a collection of vectors" do
     a = Vector.new 1, 2
     b = Vector.new 3, 5

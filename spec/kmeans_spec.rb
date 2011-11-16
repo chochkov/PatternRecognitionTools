@@ -7,14 +7,8 @@ describe Kmeans do
     a.data.size.should > 1
   end
 
-  it "calculate means" do
-    a = Kmeans.new.to_means
-    a.data.class.should == Hash
-    a.data.size.should == 10
-  end
-
   it "should cluster" do
-    a = Kmeans.new.to_means
+    a = Kmeans.new :k => 3
     clusters = a.clusterize
     clusters.class.should == Hash
     clusters.size.should == 3

@@ -1,74 +1,60 @@
+require './lib/constants'
 require 'open-uri'
 
 module Mustererkennung
   class Kmeans
-    attr_accessor :data, :k
+    include Constants
 
-    FILE_NAME = if File.exists?('./../examples/pendigits-training.txt')
-        './../examples/pendigits-training.txt'
-      else
-        'http://www.inf.fu-berlin.de/lehre/WS11/ME/uebungen/uebung01/pendigits-training.txt'
-      end
+    attr_accessor :data, :k, :clusters, :centroids, :iteration
 
-    def initialize(k = 3)
-      @k = k
-      @data = open(FILE_NAME) { |file|
+    def initialize(opts = {})
+      @k = opts[:k] || DEFAULT_K
+
+      @data = open(FILE_NAME) do |file|
         file.read.split("\n")
-      }
-      self.to_means
+      end.map(&:split).map { |row| row.map(&:to_i) }
+
+      @data.map! do |row|
+        vectors = Vectors.new
+        row.first(16).each_slice(2) do |x, y|
+          vectors << Vector.new(x, y, row.last)
+        end
+        vectors.mean
+      end
+
+      @iteration = 0
+      @centroids = { iteration => data.sample(k) }
     end
 
-    # returns `Hash` structure @data:
-    # {
-    #   :label1 => [ datensatz1, datensatz2, ... ],
-    #   ...
-    # }
-    def to_means
-      @data = data.map(&:split).inject(Hash.new { |hash, key| hash[key] = [] }) do |memo, row|
-        memo[row.last.to_i] << Vectors.new(row.first(16).map(&:to_i)).mean
+    def clusterize
+      while not convergence? do
+        @iteration += 1
+        cluster!
+      end
+      clusters
+    end
+
+    # recluster each Vector to the current centroids.
+    def cluster!
+      @clusters = data.inject(Hash.new { |hash, key| hash[key] = Vectors.new }) do |memo, vector|
+        memo[vector.cluster(centroids)] << vector
         memo
       end
-      self
     end
 
-    def clusterize(times = 10)
-      times.times do
-        @clusters = clusters
-      end
-      @clusters
-    end
-
-    def clusters
-      values.data.inject(Hash.new { |hash, key| hash[key] = Vectors.new }) do |memo, vector|
-        memo[cluster(vector)] << vector
-        memo
-      end
-    end
-
-    def cluster(vector)
-      means.inject({}) do |m, mean|
-        m[mean] = vector.distance(mean)
-        m
-      end.min_by { |k, v| v }.first
-    end
-
-    def means
-      if @clusters
-        @clusters.inject([]) do |memo, pair|
-          memo.push(pair.last.sample)
+    def centroids
+      if clusters
+        @centroids[iteration] ||= clusters.inject([]) do |memo, pair|
+          memo.push(pair.last.centroid)
           memo
         end
       else
-        values.sample(k)
+        @centroids[0]
       end
     end
 
-    def values
-      Vectors.new(@data.values)
-    end
-
-    def labels
-      @data.keys
+    def convergence?
+      iteration >= CONVERGENCE_ITERATION
     end
   end
 end
