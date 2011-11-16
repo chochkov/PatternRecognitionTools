@@ -1,13 +1,12 @@
+# A 2 dimensional vector with label
 module Mustererkennung
   class Vector
-    attr_accessor :x, :y
+    attr_accessor :x, :y, :label
 
-    def initialize(*elements)
-      if elements.size < 2
-        @x, @y = 0, 0
-      else
-        @x, @y = *elements
-      end
+    def initialize(x = nil, y = nil, label = nil)
+      @x = x
+      @y = y
+      @label = label
     end
 
     def distance(other)
@@ -39,6 +38,15 @@ module Mustererkennung
 
     def ==(other)
       x == other.x && y == other.y
+    end
+
+    # Attribute vector to the nearest centroid
+    # Returns the nearest centroid, a Vector object
+    def cluster(centroids)
+      centroids.inject({}) do |m, mean|
+        m[mean] = vector.distance(mean)
+        m
+      end.min_by(&:last).first
     end
   end
 end

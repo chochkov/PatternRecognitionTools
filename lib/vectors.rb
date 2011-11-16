@@ -1,21 +1,16 @@
+# A collection of 2 dimensional vectors
 class Vectors
   include Enumerable
   attr_accessor :data
 
   def initialize(array = [])
-    if (array == []) || (array.flatten.first.kind_of? Mustererkennung::Vector)
-      @data = array.flatten
-      return
-    end
-
-    @data = array.inject([[]]) do |memo, element|
-      if memo.last.size < 2
-        memo.last.push(element)
+    @data = if array.empty? || array.all? { |e| e.kind_of? Vector }
+        array
+      elsif array.all? { |e| e.size == 3 }
+        array.map { |triple| Vector.new *triple }
       else
-        memo.push([element])
-      end
-      memo
-    end.map { |pair| Vector.new(*pair) }
+        raise ArgumentError.new "#{array} given, expected vectors or triplets"
+    end
   end
 
   def first
@@ -47,7 +42,7 @@ class Vectors
   end
 
   def sum
-    @data.inject(Vector.new) do |memo, vector|
+    @data.inject(Vector.new(0, 0)) do |memo, vector|
       memo += vector
       memo
     end
@@ -56,4 +51,7 @@ class Vectors
   def mean
     sum / @data.size
   end
+
+  alias :centroid :mean
 end
+
