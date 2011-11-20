@@ -12,7 +12,7 @@ module Mustererkennung
 
     DEFAULT_K = 10
 
-    CONVERGENCE_ITERATION = 10
+    MAX_ITERATIONS = 50
   end
 end
 

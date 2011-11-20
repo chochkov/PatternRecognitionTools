@@ -32,11 +32,17 @@ class Vectors
   end
 
   def <<(other)
-    @data << other
+    if other.kind_of?(Vector)
+      @data << other
+    else
+      raise ArgumentError.new("Vector expected #{other} received.")
+    end
   end
 
+  # Returns new Vectors object containing the vectors
+  # from self and other
   def +(other)
-    @data + other.data
+    Vectors.new(@data + other.data)
   end
 
   def sample(*args)
@@ -59,5 +65,9 @@ class Vectors
   end
 
   alias :centroid :mean
+
+  def sort_by! &block
+    @data.sort_by! &block
+  end
 end
 

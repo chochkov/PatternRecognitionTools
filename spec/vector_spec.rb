@@ -2,15 +2,14 @@ require 'spec_helper'
 
 describe Vector do
   it "can be initialized" do
-    a = Vector.new(1, 2, 8)
+    a = Vector.new(8, 1, 2)
     a.label.should == 8
-    a.x.should == 1
-    a.y.should == 2
+    a.elements.first.should == 1
+    a.elements.last.should == 2
     a = Vector.new
-    a.x.should == nil
-    a.y.should == nil
+    a.elements.should == nil
     a.label.should == nil
-    Vector.new(*[ 1, 2 ]).should == Vector.new(1, 2)
+    Vector.new(nil, *[ 1, 2 ]).should == Vector.new(nil, 1, 2)
   end
 
   it "should calculate Eucledian distance" do

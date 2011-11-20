@@ -1,17 +1,19 @@
 # 2 dimensional Vector with label
 module Mustererkennung
   class Vector
-    attr_accessor :x, :y, :label
+    attr_accessor :elements, :label
 
-    def initialize(x = nil, y = nil, label = nil)
-      @x = x
-      @y = y
+    def initialize(label = nil, *elements)
+      @elements = elements
       @label = label
     end
 
     # Euclidean distance between self and other
     def distance(other)
-      Math.sqrt((x - other.x) ** 2 + (y - other.y) ** 2)
+      Math.sqrt([ elements, other ].inject(0) { |memo, element|
+        memo += (element - memo.delete_at(0)) ** 2
+        memo
+      })
     end
 
     # elementwise sumation or sum of vectors
@@ -19,12 +21,10 @@ module Mustererkennung
       if other.kind_of? Fixnum
         @x += other
         @y += other
+        self
       elsif other.kind_of? Vector
-        @x += other.x
-        @y += other.y
-        self.label = other
+        Vector.new(@x + other.x, @y + other.y, label = other)
       end
-      self
     end
 
     # elementwise multiplication or outer product
@@ -46,7 +46,7 @@ module Mustererkennung
     end
 
     def label=(other)
-      @label = if label == other.label
+      if label == other.label
         label
       elsif label.nil? && ! other.label.nil?
         other.label

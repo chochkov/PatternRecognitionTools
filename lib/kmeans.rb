@@ -5,7 +5,7 @@ module Mustererkennung
   class Kmeans
     include Constants
 
-    attr_accessor :data, :k, :clusters, :centroids, :iteration
+    attr_accessor :data, :k, :clusters, :centroids, :iteration, :max_iterations
 
     def initialize(opts = {})
       @k = opts[:k] || DEFAULT_K
@@ -14,16 +14,16 @@ module Mustererkennung
         file.read.split("\n")
       end.map(&:split).map { |row| row.map(&:to_i) }
 
-      @data.map! do |row|
-        vectors = Vectors.new
+      @data = @data.inject(Vectors.new) do |memo, row|
         row.first(16).each_slice(2) do |x, y|
-          vectors << Vector.new(x, y, row.last)
+          memo << Vector.new(x, y, row.last)
         end
-        vectors.mean
+        memo
       end
 
       @iteration = 0
       @centroids = { iteration => data.sample(k) }
+      @max_iterations = opts[:max_iterations] || MAX_ITERATIONS
     end
 
     def clusterize
@@ -40,6 +40,10 @@ module Mustererkennung
         memo[vector.cluster(centroids)] << vector
         memo
       end
+      @clusters.each do |centroid, vectors|
+        vectors.sort_by! { |vector| vector.label }
+      end
+      @clusters
     end
 
     def centroids
@@ -54,7 +58,7 @@ module Mustererkennung
     end
 
     def convergence?
-      iteration >= CONVERGENCE_ITERATION
+      iteration >= @max_iterations
     end
   end
 end
