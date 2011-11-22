@@ -14,12 +14,9 @@ module Mustererkennung
         file.read.split("\n")
       end.map(&:split).map { |row| row.map(&:to_i) }
 
-      @data = @data.inject(Vectors.new) do |memo, row|
-        row.first(16).each_slice(2) do |x, y|
-          memo << Vector.new(x, y, row.last)
-        end
-        memo
-      end
+      @data = Vectors.new(@data.map do |row|
+        Vector.new({ :label => row.last }, *row.first(16))
+      end)
 
       @iteration = 0
       @centroids = { iteration => data.sample(k) }
@@ -49,7 +46,7 @@ module Mustererkennung
     def centroids
       if clusters
         @centroids[iteration] ||= clusters.inject([]) do |memo, pair|
-          memo.push(pair.last.centroid)
+          memo.push(pair.last.mean)
           memo
         end
       else

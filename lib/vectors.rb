@@ -1,39 +1,41 @@
-# A collection of 2 dimensional vectors
+# A collection of vectors with the same dimensions.
+#
 class Vectors
   include Enumerable
-  attr_accessor :data
+  attr_accessor :vectors, :dimension
 
-  def initialize(array = [], label = nil)
-    @data = if array.empty? || array.all? { |e| e.kind_of? Vector }
-        array
-      elsif array.all? { |e| e.size == 2 }
-        array.map { |pair| Vector.new *pair, label }
-      elsif array.all? { |e| e.size == 3 }
-        array.map { |triple| Vector.new *triple }
-      else
-        raise ArgumentError.new "#{array} given, expected vectors or triplets"
-      end
+  def initialize(*args)
+    if args.flatten.any?
+      raise DimensionMismatch unless Vector.vectors_of_same_dimension?(args)
+      @dimension = args.flatten.first.dimension
+    end
+    @dimension ||= 16
+    @vectors = args.flatten
   end
 
-  def first
-    @data.first
+  def first(arg = nil)
+    if arg
+      @vectors.first(arg)
+    else
+      @vectors.first
+    end
   end
 
   def last
-    @data.last
+    @vectors.last
   end
 
-  def [](count)
-    @data[count]
+  def [](index)
+    @vectors[index]
   end
 
   def each
-    @data.each
+    @vectors.each
   end
 
   def <<(other)
     if other.kind_of?(Vector)
-      @data << other
+      @vectors << other
     else
       raise ArgumentError.new("Vector expected #{other} received.")
     end
@@ -42,32 +44,42 @@ class Vectors
   # Returns new Vectors object containing the vectors
   # from self and other
   def +(other)
-    Vectors.new(@data + other.data)
+    Vectors.new(@vectors + other.vectors)
   end
 
   def sample(*args)
-    @data.sample(*args)
+    @vectors.sample(*args)
   end
 
   def size
-    @data.size
+    @vectors.size
   end
 
   def sum
-    @data.inject(Vector.new(0, 0)) do |memo, vector|
+    a = Array.new(dimension, 0)
+    inject(Vector.new(a)) do |memo, vector|
       memo += vector
       memo
     end
   end
 
   def mean
-    sum / @data.size
+    sum / @vectors.size.to_f
   end
 
-  alias :centroid :mean
+  def label
+    @vectors.inject(Hash.new(0)) do |memo, vector|
+      memo[vector.label] += 1
+      memo
+    end.max_by { |label, count| count }.first
+  end
 
   def sort_by! &block
-    @data.sort_by! &block
+    @vectors.sort_by! &block
+  end
+
+  def inject(start, &block)
+    @vectors.inject(start, &block)
   end
 end
 
